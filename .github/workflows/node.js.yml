@@ -12,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [16]
+        node-version: [16, 18]  # Add more Node.js versions to test
 
     steps:
     - uses: actions/checkout@v4
@@ -23,11 +23,23 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
 
+    - name: Cache node_modules
+      uses: actions/cache@v3
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
     - run: npm ci
 
     - run: npm run build --if-present
 
     - run: npm test
+    - run: npm run lint  # Assuming you have a lint script
+    - run: npm audit --production --audit-level=high
+
+
 
     # Docker steps to build and push to Docker Hub
     - name: Log in to Docker Hub
@@ -38,7 +50,7 @@ jobs:
 
     - name: Build Docker image
       run: |
-        docker build -t your-dockerhub-username/my-node-app:${{ github.sha }} .
+        docker build --cache-from=your-dockerhub-username/my-node-app:latest -t your-dockerhub-username/my-node-app:${{ github.sha }} .
 
     - name: Push Docker image to Docker Hub
       run: |
@@ -49,4 +61,3 @@ jobs:
       run: |
         docker tag your-dockerhub-username/my-node-app:${{ github.sha }} your-dockerhub-username/my-node-app:latest
         docker push your-dockerhub-username/my-node-app:latest
-
