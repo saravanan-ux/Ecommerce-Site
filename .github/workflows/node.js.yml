@@ -12,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: ["16"]  # Testing on multiple Node.js versions
+        node-version: [16, 18]  # Testing on multiple Node.js versions
 
     steps:
     - uses: actions/checkout@v4  # Checkout the repository
@@ -39,6 +39,19 @@ jobs:
     - run: npm run build --if-present  # Build the project if there's a build script
 
     - run: npm test  # Run tests
+    import ErrorBoundary from './ErrorBoundary';
+import App from './App';
+
+function Root() {
+  return (
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
+  );
+}
+
+export default Root;
+
 
     # Docker steps to build and push to Docker Hub
     - name: Log in to Docker Hub
